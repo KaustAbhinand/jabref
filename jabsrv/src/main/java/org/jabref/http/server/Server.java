@@ -143,6 +143,7 @@ public class Server {
 
         // Supporting classes
         resourceConfig.register(CORSFilter.class);
+        resourceConfig.register(CrossOriginRequestFilter.class);
         resourceConfig.register(GlobalExceptionMapper.class);
         resourceConfig.register(GsonMessageBodyReader.class);
         resourceConfig.register(GsonMessageBodyWriter.class);

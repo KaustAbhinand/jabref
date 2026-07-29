@@ -13,6 +13,8 @@ Needs: impl
 ## Reject external entities in XML responses
 `req~fetchers.xml-xxe-prevention~1`
 
-MODS and Medline XML imports and PICA, MARC, ISIDORE, and arXiv XML fetcher responses disable DTD processing so that external entities cannot be resolved.
+MODS, Medline, EndNote XML, Citavi, and MS Office (MSBib) XML imports as well as PICA, MARC, ISIDORE, arXiv, and Medline XML fetcher responses disable DTD processing so that external entities cannot be resolved.
+Citation style (CSL) files are read with DTD processing disabled, too.
+BibDesk group comments inside `.bib` files are Apple plists and thus carry a DOCTYPE declaration; there, external entity resolution is disabled and entity expansion is limited instead.
 
 <!-- markdownlint-disable-file MD022 -->

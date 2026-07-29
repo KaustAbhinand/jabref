@@ -101,3 +101,14 @@ Note: If you do not do this, you get following error message:
 ```text
 Could not find server key store C:\Users\USERNAME\AppData\Local\org.jabref\jabref\ssl\server.p12.
 ```
+
+## Cross-origin access
+
+The server has no authentication; its protection is that it listens on the loopback interface only.
+Therefore, cross-origin access is limited to callers on the user's machine (see `req~jabsrv.cors.local-callers-only~1`):
+
+- [`CORSFilter`](https://github.com/JabRef/jabref/blob/main/jabsrv/src/main/java/org/jabref/http/server/CORSFilter.java) echoes `Access-Control-Allow-Origin` for loopback origins and browser-extension origins only.
+- [`CrossOriginRequestFilter`](https://github.com/JabRef/jabref/blob/main/jabsrv/src/main/java/org/jabref/http/server/CrossOriginRequestFilter.java) answers state-changing requests (`POST`, `PUT`, `DELETE`, ...) carrying any other `Origin` with `403`, because browsers send "simple" requests such as a `text/plain` `POST` cross-origin without a preflight.
+
+Clients that are not browsers (local applications, `curl`, the IntelliJ http client) send no `Origin` header and are thus unaffected.
+When adding a client served from another origin, add its origin to `CORSFilter` instead of re-enabling the `*` wildcard.

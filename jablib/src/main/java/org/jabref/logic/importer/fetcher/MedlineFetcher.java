@@ -76,6 +76,8 @@ public class MedlineFetcher implements IdBasedParserFetcher, SearchBasedFetcher,
             URL ncbi = createSearchUrl(query);
 
             XMLInputFactory inputFactory = XMLInputFactory.newFactory();
+            inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            inputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
             XMLStreamReader streamReader = inputFactory.createXMLStreamReader(ncbi.openStream());
 
             fetchLoop:

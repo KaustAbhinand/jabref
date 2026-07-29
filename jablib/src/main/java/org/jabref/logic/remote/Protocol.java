@@ -1,6 +1,7 @@
 package org.jabref.logic.remote;
 
 import java.io.IOException;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -20,6 +21,15 @@ public class Protocol implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Protocol.class);
 
+    /// Only [RemoteMessage] and command line arguments (strings) are ever exchanged. Everything else
+    /// is rejected before it is instantiated, so that a process able to connect to the remote port
+    /// cannot use the deserialization of arbitrary classes as a code execution primitive.
+    private static final ObjectInputFilter MESSAGE_FILTER = ObjectInputFilter.Config.createFilter(
+            "maxdepth=5;maxarray=10000;"
+                    + RemoteMessage.class.getName() + ";"
+                    + "java.lang.Enum;java.lang.String;"
+                    + "!*");
+
     private final Socket socket;
     private final ObjectOutputStream out;
     private final ObjectInputStream in;
@@ -28,6 +38,7 @@ public class Protocol implements AutoCloseable {
         this.socket = socket;
         this.out = new ObjectOutputStream(socket.getOutputStream());
         this.in = new ObjectInputStream(socket.getInputStream());
+        this.in.setObjectInputFilter(MESSAGE_FILTER);
     }
 
     public void sendMessage(RemoteMessage type) throws IOException {

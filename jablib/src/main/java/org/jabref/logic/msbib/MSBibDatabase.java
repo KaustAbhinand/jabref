@@ -32,6 +32,7 @@ public class MSBibDatabase {
     public static final String PREFIX = "b:";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MSBibDatabase.class);
+    private static final String DISALLOW_DOCTYPE_DECLARATION = "http://apache.org/xml/features/disallow-doctype-decl";
 
     private final DocumentBuilderFactory factory;
 
@@ -42,6 +43,11 @@ public class MSBibDatabase {
         entriesForExport = new HashSet<>();
         factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
+        try {
+            factory.setFeature(DISALLOW_DOCTYPE_DECLARATION, true);
+        } catch (ParserConfigurationException e) {
+            LOGGER.warn("Could not disable DTD processing; the XML processor does not support '{}'.", DISALLOW_DOCTYPE_DECLARATION, e);
+        }
     }
 
     /// Creates a new {@link MSBibDatabase} for **export**.

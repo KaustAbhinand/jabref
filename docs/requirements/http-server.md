@@ -38,4 +38,16 @@ TODO: if the named group exists but is not assignable (e.g. a search or automati
 
 Needs: impl
 
+## Restrict cross-origin access
+`req~jabsrv.cors.local-callers-only~1`
+
+The HTTP server answers cross-origin requests only for callers belonging to the user's machine: origins on the loopback interface (`localhost`, `127.0.0.1`, `[::1]`) and browser extensions (`chrome-extension:`, `moz-extension:`, `safari-web-extension:`, `ms-browser-extension:`).
+Any other origin receives no `Access-Control-Allow-Origin` header, so a website cannot read the responses.
+
+Requests that change state (anything but `GET`, `HEAD`, and the `OPTIONS` preflight) are answered with `403` if they carry an `Origin` header that is not allowed, because a browser sends "simple" cross-origin requests without a preflight.
+
+Requests without an `Origin` header (local applications and CLI tools) are not restricted.
+
+Needs: impl, utest
+
 <!-- markdownlint-disable-file MD022 -->
