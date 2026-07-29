@@ -101,6 +101,8 @@ public class EndnoteXmlImporter extends Importer implements Parser {
         // prevent xxe (https://rules.sonarsource.com/java/RSPEC-2755)
         // not suported by aalto-xml
         // xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         // required for reading Unicode characters such as &#xf6;
         xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
     }

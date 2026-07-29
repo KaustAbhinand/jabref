@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -94,7 +95,10 @@ public class BibtexParser implements Parser {
     private static final Logger LOGGER = LoggerFactory.getLogger(BibtexParser.class);
     private static final int LOOKAHEAD = 1024;
     private static final String BIB_DESK_ROOT_GROUP_NAME = "BibDeskGroups";
-    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+    private static final String LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+    private static final String EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+    private static final String EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = createDocumentBuilderFactory();
     private static final Pattern EPILOG_PATTERN = Pattern.compile("\\w+\\s*=.*,");
     private static final int INDEX_RELATIVE_PATH_IN_PLIST = 4;
     private final Deque<Character> pureTextFromFile = new LinkedList<>();
@@ -424,6 +428,34 @@ public class BibtexParser implements Parser {
                 }
             }
         }
+    }
+
+    /// BibDesk group comments are Apple plists and thus carry a `DOCTYPE` declaration, so the
+    /// declaration itself cannot be rejected. Instead, resolution of external entities is switched
+    /// off (XXE) and secure processing caps entity expansion (billion laughs).
+    private static DocumentBuilderFactory createDocumentBuilderFactory() {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        String feature = null;
+        try {
+            feature = XMLConstants.FEATURE_SECURE_PROCESSING;
+            documentBuilderFactory.setFeature(feature, true);
+
+            feature = LOAD_EXTERNAL_DTD;
+            documentBuilderFactory.setFeature(feature, false);
+
+            feature = EXTERNAL_GENERAL_ENTITIES;
+            documentBuilderFactory.setFeature(feature, false);
+
+            feature = EXTERNAL_PARAMETER_ENTITIES;
+            documentBuilderFactory.setFeature(feature, false);
+        } catch (ParserConfigurationException e) {
+            LOGGER.warn("Builder not fully configured. Feature '{}' is probably not supported by the current XML processor.", feature, e);
+        }
+        documentBuilderFactory.setXIncludeAware(false);
+        documentBuilderFactory.setExpandEntityReferences(false);
+        documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        return documentBuilderFactory;
     }
 
     /// Parses comment types found in BibDesk, to migrate BibDesk Static Groups to JabRef.

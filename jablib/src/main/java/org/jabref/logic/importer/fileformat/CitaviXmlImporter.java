@@ -81,6 +81,8 @@ public class CitaviXmlImporter extends Importer implements Parser {
 
     public CitaviXmlImporter() {
         xmlInputFactory = XMLInputFactory.newFactory();
+        xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
     }
 
     @Override

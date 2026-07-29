@@ -1,6 +1,8 @@
 package org.jabref.logic.importer.fileformat;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -40,6 +42,22 @@ class MsBibImporterTest {
         Path file = Path.of(MsBibImporter.class.getResource("CopacImporterTest1.txt").toURI());
         List<BibEntry> entries = importer.importDatabase(file).getDatabase().getEntries();
         assertEquals(0, entries.size());
+    }
+
+    @Test
+    final void importEntriesRejectsDocumentTypeDeclarations() throws IOException {
+        String xmlWithDoctype = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE Sources [<!ENTITY entity SYSTEM "file:///not-accessed">]>
+                <b:Sources xmlns:b="http://schemas.openxmlformats.org/officeDocument/2006/bibliography">
+                    <b:Source><b:Title>&entity;</b:Title></b:Source>
+                </b:Sources>
+                """;
+
+        List<BibEntry> entries = importer.importDatabase(new BufferedReader(Reader.of(xmlWithDoctype)))
+                                        .getDatabase().getEntries();
+
+        assertEquals(List.of(), entries);
     }
 
     @Test

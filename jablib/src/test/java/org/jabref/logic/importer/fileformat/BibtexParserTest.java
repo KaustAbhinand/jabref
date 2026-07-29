@@ -2,6 +2,7 @@ package org.jabref.logic.importer.fileformat;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,6 +65,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -1520,6 +1522,39 @@ class BibtexParserTest {
 
         assertEquals(List.of(root.getGroup(), firstTestGroupExpected), root.getContainingGroups(db.getEntries(), true).stream().map(GroupTreeNode::getGroup).toList());
         assertEquals(List.of(root.getGroup(), firstTestGroupExpected), root.getContainingGroups(db.getEntryByCitationKey("Heyl:2023aa").stream().toList(), false).stream().map(GroupTreeNode::getGroup).toList());
+    }
+
+    /// Checks that a BibDesk group comment cannot read local files through an external entity
+    @Test
+    void bibDeskGroupCommentDoesNotResolveExternalEntities(@TempDir Path tempDir) throws IOException {
+        Path secret = tempDir.resolve("secret.txt");
+        Files.writeString(secret, "TOP_SECRET");
+
+        ParserResult result = parser.parse(Reader.of("""
+                @comment{BibDesk Static Groups{
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist [<!ENTITY secret SYSTEM "%s">]>
+                <plist version="1.0">
+                <array>
+                    <dict>
+                        <key>group name</key>
+                        <string>&secret;</string>
+                        <key>keys</key>
+                        <string></string>
+                    </dict>
+                </array>
+                </plist>
+                }}
+                """.formatted(secret.toUri())));
+
+        List<String> groupNames = result.getMetaData().getGroups()
+                                        .map(root -> root.getChildren().stream()
+                                                         .flatMap(bibDeskRoot -> bibDeskRoot.getChildren().stream())
+                                                         .map(GroupTreeNode::getName)
+                                                         .toList())
+                                        .orElse(List.of());
+
+        assertEquals(List.of(""), groupNames);
     }
 
     /// Checks that BibDesk Smart Groups are available after parsing the library

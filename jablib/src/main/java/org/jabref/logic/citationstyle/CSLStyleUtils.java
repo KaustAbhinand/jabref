@@ -31,6 +31,8 @@ public final class CSLStyleUtils {
     }
 
     static {
+        XML_INPUT_FACTORY.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        XML_INPUT_FACTORY.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         XML_INPUT_FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
     }
 
